@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "3Z8jIQHQmLwQmG9uebWWxsmoQUd6XYONvB7g3jPVvIY=",
+  "Source": "WebStoreApp",
+  "BasePath": "_content/WebStoreApp",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
