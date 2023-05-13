@@ -19,10 +19,18 @@ public class DataContext : DbContext
 
     public DbSet<User> Users { get; set; }
     public DbSet<StoreItem> StoreItems { get; set; }
+    public DbSet<Account> Accounts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>().ToTable("users");
         modelBuilder.Entity<StoreItem>().ToTable("store_items");
+        modelBuilder.Entity<Account>()
+            .ToTable("accounts")
+            .HasOne(a => a.User)
+            .WithOne(u => u.Account)
+            .HasForeignKey<Account>(a => a.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+        base.OnModelCreating(modelBuilder);
     }
 }

@@ -10,16 +10,20 @@ public class User
     
     [Column("name")]
     public string Username { get; set; }
+
     [Column("password")]
     public string Password { get; set; }
 
+    public virtual Account Account { get; set; } = null!;
+
     public User()
     {
-        
+        Account = new Account();
     }
-    public User(string username,string password)
+    public User(string username, string password, decimal balance)
     {
-        this.Username = username;
-        this.Password = password;
+        Username = username;
+        Password = password;
+        Account = new Account { Balance = balance, UserId = Id };
     }
 }

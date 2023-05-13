@@ -1,18 +1,15 @@
+﻿using Backend.DTOs;
 using Backend.Models;
 
-namespace Backend.Repositories;
-
-public interface IUserRepository
+namespace Backend.Repositories
 {
-    public void Add(User u);
-
-    public IEnumerable<User> GetAll();
-
-    public User FindById(int id);
-
-    public User FindByUsername(string username);
-
-    public void Update(User u);
-
-    public void Delete(User u);
+    public interface IUserRepository
+    {
+        void Add(UserAddDTO u);
+        void Delete(int id);
+        User FindById(int id);
+        User FindByUsername(string username);
+        IEnumerable<User> GetAll();
+        void Update(User u);
+    }
 }

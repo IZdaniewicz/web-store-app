@@ -20,7 +20,6 @@ public class StoreItemRepository : IStoreItemRepository
     public IEnumerable<StoreItem> GetAll()
     {
         return _dbContext.StoreItems.ToList();   
-        
     }
     
     public StoreItem FindById(int id)

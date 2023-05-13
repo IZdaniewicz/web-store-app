@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Backend.DTOs;
 using Backend.Models;
 using Backend.Repositories;
 using Microsoft.AspNetCore.Authorization;
@@ -23,7 +24,7 @@ public class AuthController : ControllerBase
 
     [HttpPost("/auth/register")]
     [AllowAnonymous]
-    public IActionResult RegisterUser([FromBody] User user)
+    public IActionResult RegisterUser([FromBody] UserAddDTO user)
     {
         try
         {
@@ -94,21 +95,6 @@ public class AuthController : ControllerBase
 
         return Ok(u);
     }
-
-    [HttpPost("/users")]
-    public IActionResult CreateUser([FromBody] User user)
-    {
-        try
-        {
-            _userRepository.Add(user);
-            return Ok("User created!");
-        }
-        catch (Exception e)
-        {
-            return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
-        }
-    }
-
     [HttpPut("/users/{id:int}")]
     public IActionResult ModifyUser(int id, [FromBody] User request)
     {
@@ -123,5 +109,10 @@ public class AuthController : ControllerBase
         {
             return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
         }
+    }
+    [HttpDelete("/users/{id:int}")]
+    public IActionResult Delete(int id) {
+        _userRepository.Delete(id);
+        return Ok();
     }
 }
