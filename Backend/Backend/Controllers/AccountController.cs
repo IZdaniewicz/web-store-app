@@ -1,6 +1,10 @@
 ﻿using Backend.Models;
 using Backend.Repositories;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Backend.Controllers
 {
@@ -16,15 +20,16 @@ namespace Backend.Controllers
         }
 
         [HttpGet("/accounts")]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            IEnumerable<Account> items = _accountRepository.GetAll();
+            IEnumerable<Account> items = await _accountRepository.GetAllAsync();
             return Ok(items);
         }
+
         [HttpGet("/accounts/{id:int}")]
-        public IActionResult GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            Account account = _accountRepository.FindById(id);
+            Account account = await _accountRepository.FindByIdAsync(id);
             if (account is null)
             {
                 return StatusCode(StatusCodes.Status404NotFound, "No matching account found");
@@ -32,12 +37,13 @@ namespace Backend.Controllers
 
             return Ok(account);
         }
+
         [HttpPost("/accounts")]
-        public IActionResult Create([FromBody] Account account)
+        public async Task<IActionResult> Create([FromBody] Account account)
         {
             try
             {
-                _accountRepository.Add(account);
+                await _accountRepository.AddAsync(account);
                 return Ok("Account created!");
             }
             catch (Exception e)
@@ -45,16 +51,17 @@ namespace Backend.Controllers
                 return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
             }
         }
+
         [HttpPut("/accounts/{id:int}")]
-        public IActionResult Modify(int id, [FromBody] Account request)
+        public async Task<IActionResult> Modify(int id, [FromBody] Account request)
         {
             try
             {
-                Account account = _accountRepository.FindById(id);
+                Account account = await _accountRepository.FindByIdAsync(id);
                 account.Balance = request.Balance;
                 account.User = request.User;
                 account.UserId = request.UserId;
-                _accountRepository.Update(account);
+                await _accountRepository.UpdateAsync(account);
                 return Ok("Account updated!");
             }
             catch (Exception e)
@@ -64,13 +71,14 @@ namespace Backend.Controllers
         }
 
         [HttpDelete("/accounts/{id:int}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                _accountRepository.Delete(id);
+                await _accountRepository.DeleteAsync(id);
                 return Ok();
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
             }

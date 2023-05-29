@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using AutoMapper;
 using Backend.DTOs;
 using Backend.Models;
 using Backend.Repositories;
@@ -15,16 +16,18 @@ public class AuthController : ControllerBase
 {
     private readonly IUserRepository _userRepository;
     private readonly IConfiguration _configuration;
+    private readonly IMapper _mapper;
 
-    public AuthController(IUserRepository userRepository, IConfiguration configuration)
+    public AuthController(IUserRepository userRepository, IConfiguration configuration,IMapper mapper)
     {
         _userRepository = userRepository;
         _configuration = configuration;
+        _mapper = mapper;
     }
 
     [HttpPost("/auth/register")]
     [AllowAnonymous]
-    public IActionResult RegisterUser([FromBody] UserAddDTO user)
+    public IActionResult RegisterUser([FromBody] UserPostDTO user)
     {
         try
         {
@@ -38,14 +41,13 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("/auth/login")]
-    public IActionResult LoginUser([FromBody] User request)
+    public IActionResult LoginUser([FromBody] UserPostDTO request)
     {
         try
         {
             User user = _userRepository.FindByUsername(request.Username);
             if (user != null)
             {
-                //create claims details based on the user information
                 var claims = new[]
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, _configuration["Jwt:Subject"]),
@@ -76,13 +78,11 @@ public class AuthController : ControllerBase
 
 
     [HttpGet("/users")]
-    [Authorize]
-    public IActionResult ListUsers()
+    //[Authorize]
+    public ActionResult<IEnumerable<UserGetDTO>> GetAll()
     {
-        IEnumerable<User> users = _userRepository.GetAll();
-        return Ok(users);
+        return Ok(_userRepository.GetAll());
     }
-
 
     [HttpGet("/users/{id:int}")]
     public IActionResult GetUser(int id)
@@ -95,6 +95,7 @@ public class AuthController : ControllerBase
 
         return Ok(u);
     }
+
     [HttpPut("/users/{id:int}")]
     public IActionResult ModifyUser(int id, [FromBody] User request)
     {
@@ -110,8 +111,10 @@ public class AuthController : ControllerBase
             return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
         }
     }
+
     [HttpDelete("/users/{id:int}")]
-    public IActionResult Delete(int id) {
+    public IActionResult Delete(int id)
+    {
         _userRepository.Delete(id);
         return Ok();
     }

@@ -25,12 +25,6 @@ public class DataContext : DbContext
     {
         modelBuilder.Entity<User>().ToTable("users");
         modelBuilder.Entity<StoreItem>().ToTable("store_items");
-        modelBuilder.Entity<Account>()
-            .ToTable("accounts")
-            .HasOne(a => a.User)
-            .WithOne(u => u.Account)
-            .HasForeignKey<Account>(a => a.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<Account>().ToTable("accounts");
     }
 }

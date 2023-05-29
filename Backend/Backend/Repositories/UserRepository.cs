@@ -1,28 +1,36 @@
+using AutoMapper;
 using Backend.DTOs;
 using Backend.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Repositories;
 
 public class UserRepository : IUserRepository
 {
     private readonly DataContext _dbContext;
+    private readonly IMapper _mapper;
 
-    public UserRepository(DataContext dbContext)
+    public UserRepository(DataContext dbContext, IMapper mapper)
     {
         _dbContext = dbContext;
+        _mapper = mapper;
     }
 
-    public void Add(UserAddDTO u)
+    public void Add(UserPostDTO userPost)
     {
-        User user = new User(u.Username, u.Password, u.Balance);
+        var user = _mapper.Map<User>(userPost);
         _dbContext.Users.Add(user);
         _dbContext.SaveChanges();
     }
 
-    public IEnumerable<User> GetAll()
+    public IEnumerable<UserGetDTO> GetAll()
     {
-        return _dbContext.Users.ToList();
+
+        var users = _dbContext.Users
+            .Include(c => c.Account)
+            .ToList();
+        return _mapper.Map<List<UserGetDTO>>(users);
     }
 
     public User FindById(int id)

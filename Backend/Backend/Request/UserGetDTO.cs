@@ -2,8 +2,10 @@
 
 namespace Backend.DTOs
 {
-    public class UserAddDTO
+    public class UserGetDTO
     {
+        [Required]
+        public int Id { get; set; }
         [Required]
         public string Username { get; set; }
 

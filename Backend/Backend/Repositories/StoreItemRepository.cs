@@ -5,7 +5,7 @@ namespace Backend.Repositories;
 public class StoreItemRepository : IStoreItemRepository
 {
     private readonly DataContext _dbContext;
-    
+
     public StoreItemRepository(DataContext dbContext)
     {
         _dbContext = dbContext;
@@ -19,9 +19,9 @@ public class StoreItemRepository : IStoreItemRepository
 
     public IEnumerable<StoreItem> GetAll()
     {
-        return _dbContext.StoreItems.ToList();   
+        return _dbContext.StoreItems.ToList();
     }
-    
+
     public StoreItem FindById(int id)
     {
         return _dbContext.StoreItems.Find(id);
