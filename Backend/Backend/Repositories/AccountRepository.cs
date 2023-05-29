@@ -4,39 +4,50 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Repositories
 {
+    public interface IAccountRepository
+    {
+        Task AddAsync(Account account);
+        Task DeleteAsync(int id);
+        Task<Account> FindByIdAsync(int id);
+        Task<IEnumerable<Account>> GetAllAsync();
+        Task UpdateAsync(Account account);
+    }
+
     public class AccountRepository : IAccountRepository
     {
         private readonly DataContext _dbContext;
-
         public AccountRepository(DataContext dbContext)
         {
             _dbContext = dbContext;
         }
 
-        public IEnumerable<Account> GetAll()
+        public async Task<IEnumerable<Account>> GetAllAsync()
         {
-            return _dbContext.Accounts.ToList();
-        }
-        public Account FindById(int id)
-        {
-            return _dbContext.Accounts.Find(id);
-        }
-        public void Add(Account account)
-        {
-            _dbContext.Accounts.Add(account);
-            _dbContext.SaveChanges();
-        }
-        public void Update(Account account)
-        {
-            _dbContext.Accounts.Update(account);
-            _dbContext.SaveChanges();
+            return await _dbContext.Accounts.ToListAsync();
         }
 
-        public void Delete(int id)
+        public async Task<Account> FindByIdAsync(int id)
         {
-            var acc = _dbContext.Accounts.Find(id);
+            return await _dbContext.Accounts.FindAsync(id);
+        }
+
+        public async Task AddAsync(Account account)
+        {
+            _dbContext.Accounts.Add(account);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(Account account)
+        {
+            _dbContext.Accounts.Update(account);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            var acc = await _dbContext.Accounts.FindAsync(id);
             _dbContext.Accounts.Remove(acc);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

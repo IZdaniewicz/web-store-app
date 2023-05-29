@@ -1,10 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 namespace Backend.Request
 {
-    public class AccountGetDTO
+    public class AccountModifyDto
     {
-        [Required]
-        public int Id { get; set; }
         [Required]
         public decimal Balance { get; set; }
     }

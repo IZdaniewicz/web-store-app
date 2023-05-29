@@ -2,15 +2,16 @@
 
 namespace Backend.DTOs
 {
-    public class UserPutDTO
+    public class UserRegisterDTO
     {
         [Required]
         public string Username { get; set; }
 
         [Required]
         public string Password { get; set; }
-
+        
         [Required]
-        public decimal Balance { get; set; }
+        public int Balance { get; set; }
+
     }
 }

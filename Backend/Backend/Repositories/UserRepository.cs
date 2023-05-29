@@ -1,58 +1,70 @@
+using System;
 using AutoMapper;
 using Backend.DTOs;
 using Backend.Models;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Backend.Repositories;
-
-public class UserRepository : IUserRepository
+namespace Backend.Repositories
 {
-    private readonly DataContext _dbContext;
-    private readonly IMapper _mapper;
-
-    public UserRepository(DataContext dbContext, IMapper mapper)
+    public interface IUserRepository
     {
-        _dbContext = dbContext;
-        _mapper = mapper;
+        Task AddAsync(UserRegisterDTO userPost);
+        Task DeleteAsync(int id);
+        Task<User> FindByIdAsync(int id);
+        Task<User> FindByUsernameAsync(string username);
+        Task<IEnumerable<User>> GetAllAsync();
+        Task UpdateAsync(User u);
     }
 
-    public void Add(UserPostDTO userPost)
+    public class UserRepository : IUserRepository
     {
-        var user = _mapper.Map<User>(userPost);
-        _dbContext.Users.Add(user);
-        _dbContext.SaveChanges();
-    }
+        private readonly DataContext _dbContext;
+        private readonly IMapper _mapper;
 
-    public IEnumerable<UserGetDTO> GetAll()
-    {
+        public UserRepository(DataContext dbContext, IMapper mapper)
+        {
+            _dbContext = dbContext;
+            _mapper = mapper;
+        }
 
-        var users = _dbContext.Users
-            .Include(c => c.Account)
-            .ToList();
-        return _mapper.Map<List<UserGetDTO>>(users);
-    }
+        public async Task AddAsync(UserRegisterDTO userPost)
+        {
+            var user = _mapper.Map<User>(userPost);
+            await _dbContext.Users.AddAsync(user);
+            await _dbContext.SaveChangesAsync();
+        }
 
-    public User FindById(int id)
-    {
-        return _dbContext.Users.Find(id);
-    }
+        public async Task<IEnumerable<User>> GetAllAsync()
+        {
+            return await _dbContext.Users
+                .Include(c => c.Account)
+                .ToListAsync();
+        }
 
-    public User FindByUsername(string username)
-    {
-        return _dbContext.Users.Single(user => user.Username == username);
-    }
+        public async Task<User> FindByIdAsync(int id)
+        {
+            return await _dbContext.Users
+                .Include(u => u.Account)
+                .FirstOrDefaultAsync(u => u.Id == id);
 
-    public void Update(User u)
-    {
-        _dbContext.Users.Update(u);
-        _dbContext.SaveChanges();
-    }
+        }
 
-    public void Delete(int id)
-    {
-        var user = _dbContext.Users.Find(id);
-        _dbContext.Users.Remove(user);
-        _dbContext.SaveChanges();
+        public async Task<User> FindByUsernameAsync(string username)
+        {
+            return await _dbContext.Users.SingleOrDefaultAsync(user => user.Username == username);
+        }
+
+        public async Task UpdateAsync(User u)
+        {
+            _dbContext.Users.Update(u);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            var user = await _dbContext.Users.FindAsync(id);
+            _dbContext.Users.Remove(user);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

@@ -1,68 +1,79 @@
+using System;
 using Backend.Models;
 using Backend.Repositories;
+using Backend.Request;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Backend.Controllers;
-
-public class ItemController : ControllerBase
+namespace Backend.Controllers
 {
-    private readonly IStoreItemRepository _storeItemRepository;
-
-    public ItemController(IStoreItemRepository storeItemRepository)
+    public class ItemController : ControllerBase
     {
-        _storeItemRepository = storeItemRepository;
-    }
+        private readonly IStoreItemRepository _storeItemRepository;
 
-    [HttpGet("/items")]
-    public IActionResult ListItems()
-    {
-        IEnumerable<StoreItem> items = _storeItemRepository.GetAll();
-        return Ok(items);
-    }
-
-
-    [HttpGet("/items/{id:int}")]
-    public IActionResult GetUser(int id)
-    {
-        StoreItem item = _storeItemRepository.FindById(id);
-        if (item is null)
+        public ItemController(IStoreItemRepository storeItemRepository)
         {
-            return StatusCode(StatusCodes.Status404NotFound, "No matching Item found");
+            _storeItemRepository = storeItemRepository;
         }
 
-        return Ok(item);
-    }
+        [HttpGet("/items")]
+        public async Task<IActionResult> GetItemsAll()
+        {
+            IEnumerable<StoreItemGetDTO> items = await _storeItemRepository.GetAllAsync();
+            return Ok(items);
+        }
 
-    [HttpPost("/items")]
-    public IActionResult CreateUser([FromBody] StoreItem item)
-    {
-        try
+        [HttpGet("/items/{id:int}")]
+        public async Task<IActionResult> GetItemById(int id)
         {
-            _storeItemRepository.Add(item);
-            return Ok("Item created!");
-        }
-        catch (Exception e)
-        {
-            return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
-        }
-    }
+            StoreItemGetDTO item = await _storeItemRepository.FindByIdAsync(id);
+            if (item is null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, "No matching Item found");
+            }
 
-    [HttpPut("/items/{id:int}")]
-    public IActionResult ModifyUser(int id, [FromBody] StoreItem request)
-    {
-        try
-        {
-            StoreItem item = _storeItemRepository.FindById(id);
-            item.Name = request.Name;
-            item.Price = request.Price;
-            item.Tag = request.Tag;
-            item.Description = request.Description;
-            _storeItemRepository.Update(item);
-            return Ok("Item updated!");
+            return Ok(item);
         }
-        catch (Exception e)
+
+        [HttpPost("/items")]
+        public async Task<IActionResult> CreateItem([FromBody] StoreItemPostDTO item)
         {
-            return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
+            try
+            {
+                await _storeItemRepository.AddAsync(item);
+                return Ok("Item created!");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
+            }
+        }
+
+        [HttpPut("/items/{id:int}")]
+        public async Task<IActionResult> ModifyItem(int id, [FromBody] StoreItemPutDTO request)
+        {
+            try
+            {
+                await _storeItemRepository.UpdateAsync(request);
+                return Ok("Item modified!");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
+            }
+        }
+
+        [HttpDelete("/items/{id:int}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                await _storeItemRepository.DeleteAsync(id);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
+            }
         }
     }
 }

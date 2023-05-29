@@ -7,115 +7,72 @@ using Backend.Models;
 using Backend.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
-namespace Backend.Controllers;
-
-public class AuthController : ControllerBase
+namespace Backend.Controllers
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IConfiguration _configuration;
-    private readonly IMapper _mapper;
-
-    public AuthController(IUserRepository userRepository, IConfiguration configuration,IMapper mapper)
+    public class AuthController : ControllerBase
     {
-        _userRepository = userRepository;
-        _configuration = configuration;
-        _mapper = mapper;
-    }
-
-    [HttpPost("/auth/register")]
-    [AllowAnonymous]
-    public IActionResult RegisterUser([FromBody] UserPostDTO user)
-    {
-        try
+        private readonly IUserRepository _userRepository;
+        private readonly IConfiguration _configuration;
+        public AuthController(IUserRepository userRepository, IConfiguration configuration, IMapper mapper)
         {
-            _userRepository.Add(user);
-            return Ok("User created!");
+            _userRepository = userRepository;
+            _configuration = configuration;
         }
-        catch (Exception e)
-        {
-            return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
-        }
-    }
 
-    [HttpPost("/auth/login")]
-    public IActionResult LoginUser([FromBody] UserPostDTO request)
-    {
-        try
+        [HttpPost("/auth/register")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RegisterUser([FromBody] UserRegisterDTO user)
         {
-            User user = _userRepository.FindByUsername(request.Username);
-            if (user != null)
+            try
             {
-                var claims = new[]
+                await _userRepository.AddAsync(user);
+                return Ok("User created!");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
+            }
+        }
+
+        [HttpPost("/auth/login")]
+        public async Task<IActionResult> LoginUser([FromBody] UserRegisterDTO request)
+        {
+            try
+            {
+                User user = await _userRepository.FindByUsernameAsync(request.Username);
+                if (user != null)
                 {
+                    var claims = new[]
+                    {
                     new Claim(JwtRegisteredClaimNames.Sub, _configuration["Jwt:Subject"]),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
                     new Claim("Username", user.Username),
                 };
 
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-                var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-                var token = new JwtSecurityToken(
-                    _configuration["Jwt:Issuer"],
-                    _configuration["Jwt:Audience"],
-                    claims,
-                    expires: DateTime.UtcNow.AddMinutes(3600),
-                    signingCredentials: signIn);
+                    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+                    var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                    var token = new JwtSecurityToken(
+                        _configuration["Jwt:Issuer"],
+                        _configuration["Jwt:Audience"],
+                        claims,
+                        expires: DateTime.UtcNow.AddMinutes(3600),
+                        signingCredentials: signIn);
 
-                return Ok(new JwtSecurityTokenHandler().WriteToken(token));
+                    return Ok(new JwtSecurityTokenHandler().WriteToken(token));
+                }
+
+                return StatusCode(StatusCodes.Status401Unauthorized, "Bad credentials");
             }
-
-            return StatusCode(StatusCodes.Status401Unauthorized, "Bad credentials");
-        }
-        catch (Exception e)
-        {
-            return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
-        }
-    }
-
-
-    [HttpGet("/users")]
-    //[Authorize]
-    public ActionResult<IEnumerable<UserGetDTO>> GetAll()
-    {
-        return Ok(_userRepository.GetAll());
-    }
-
-    [HttpGet("/users/{id:int}")]
-    public IActionResult GetUser(int id)
-    {
-        User u = _userRepository.FindById(id);
-        if (u is null)
-        {
-            return StatusCode(StatusCodes.Status404NotFound, "No matching user found");
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
+            }
         }
 
-        return Ok(u);
-    }
-
-    [HttpPut("/users/{id:int}")]
-    public IActionResult ModifyUser(int id, [FromBody] User request)
-    {
-        try
-        {
-            User user = _userRepository.FindById(id);
-            user.Username = request.Username;
-            _userRepository.Update(user);
-            return Ok("User updated!");
-        }
-        catch (Exception e)
-        {
-            return StatusCode(StatusCodes.Status400BadRequest, e.ToString());
-        }
-    }
-
-    [HttpDelete("/users/{id:int}")]
-    public IActionResult Delete(int id)
-    {
-        _userRepository.Delete(id);
-        return Ok();
     }
 }
